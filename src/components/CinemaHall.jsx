@@ -1,9 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getBookingsForMovie } from '../services/BookingService';
 
-const CinemaHall = ({ rows = 5, seatsPerRow = 10 }) => {
+const CinemaHall = ({ rows = 5, seatsPerRow = 10, movieId }) => {
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [bookedSeats, setBookedSeats] = useState([]);
+
+  useEffect(() => {
+    if (movieId) {
+      const bookings = getBookingsForMovie(movieId);
+      const allBookedSeats = bookings.flatMap(booking => booking.seats);
+      setBookedSeats(allBookedSeats);
+    }
+  }, [movieId]);
 
   const handleSeatClick = (seatId) => {
+    if (bookedSeats.includes(seatId)) return;
+    
     setSelectedSeats(prev => 
       prev.includes(seatId) 
         ? prev.filter(id => id !== seatId) 
@@ -17,11 +29,18 @@ const CinemaHall = ({ rows = 5, seatsPerRow = 10 }) => {
       const rowSeats = [];
       for (let seat = 1; seat <= seatsPerRow; seat++) {
         const seatId = `${row}-${seat}`;
+        const isBooked = bookedSeats.includes(seatId);
+        const isSelected = selectedSeats.includes(seatId);
+        
+        let seatClass = 'seat';
+        if (isBooked) seatClass += ' booked';
+        if (isSelected) seatClass += ' selected';
+
         rowSeats.push(
           <div 
             key={seatId}
-            className={`seat ${selectedSeats.includes(seatId) ? 'selected' : ''}`}
-            onClick={() => handleSeatClick(seatId)}
+            className={seatClass}
+            onClick={() => !isBooked && handleSeatClick(seatId)}
           >
             {seat}
           </div>
