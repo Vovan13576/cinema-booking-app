@@ -1,53 +1,51 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import CinemaHall from '../components/CinemaHall';
-import BookingForm from '../components/BookingForm';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { saveBooking } from '../services/BookingService';
 
 const Booking = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [bookingComplete, setBookingComplete] = useState(false);
 
-  const handleSeatsChange = (seats) => {
-    setSelectedSeats(seats);
+  const handleSeatSelect = (seatId) => {
+    setSelectedSeats(prev => 
+      prev.includes(seatId) 
+        ? prev.filter(id => id !== seatId) 
+        : [...prev, seatId]
+    );
   };
 
-  const handleBookingSuccess = () => {
-    setSelectedSeats([]);
-    setBookingComplete(true);
+  const handleBooking = async () => {
+    try {
+      await saveBooking({
+        movieId: id,
+        seats: selectedSeats
+      });
+      navigate('/my-bookings');
+    } catch (error) {
+      console.error('Помилка бронювання:', error);
+    }
   };
 
   return (
     <div className="booking-page">
       <h1>Бронювання місць</h1>
-      <p>Фільм ID: {id}</p>
-      
-      {!bookingComplete ? (
-        <>
-          <CinemaHall 
-            movieId={id} 
-            onSeatsChange={handleSeatsChange} 
-          />
-          {selectedSeats.length > 0 && (
-            <BookingForm 
-              movieId={id} 
-              selectedSeats={selectedSeats} 
-              onBookingSuccess={handleBookingSuccess}
-            />
-          )}
-        </>
-      ) : (
-        <div className="success-message">
-          <h3>Дякуємо за бронювання!</h3>
-          <button onClick={() => setBookingComplete(false)}>
-            Забронювати ще місця
-          </button>
-        </div>
-      )}
-      
-      <ToastContainer />
+      <CinemaHall 
+        movieId={id}
+        selectedSeats={selectedSeats}
+        onSeatSelect={handleSeatSelect}
+      />
+      <div className="selected-seats-info">
+        <h3>Вибрані місця: {selectedSeats.length ? selectedSeats.join(', ') : 'немає'}</h3>
+      </div>
+      <button 
+        onClick={handleBooking}
+        disabled={!selectedSeats.length}
+        className="book-button"
+      >
+        Підтвердити бронювання
+      </button>
     </div>
   );
 };

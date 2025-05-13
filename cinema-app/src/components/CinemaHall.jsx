@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getBookingsForMovie } from '../services/BookingService';
+import './CinemaHall.css'; // Додамо окремий файл стилів
 
-const CinemaHall = ({ rows = 5, seatsPerRow = 10, movieId }) => {
-  const [selectedSeats, setSelectedSeats] = useState([]);
+const CinemaHall = ({ movieId, onSeatSelect, selectedSeats = [] }) => {
   const [bookedSeats, setBookedSeats] = useState([]);
+  const rows = 5;
+  const seatsPerRow = 10;
 
   useEffect(() => {
     if (movieId) {
@@ -14,56 +16,58 @@ const CinemaHall = ({ rows = 5, seatsPerRow = 10, movieId }) => {
   }, [movieId]);
 
   const handleSeatClick = (seatId) => {
-    if (bookedSeats.includes(seatId)) return;
-    
-    setSelectedSeats(prev => 
-      prev.includes(seatId) 
-        ? prev.filter(id => id !== seatId) 
-        : [...prev, seatId]
-    );
+    if (!bookedSeats.includes(seatId)) {
+      onSeatSelect(seatId);
+    }
   };
 
   const renderSeats = () => {
-    const seats = [];
-    for (let row = 1; row <= rows; row++) {
-      const rowSeats = [];
-      for (let seat = 1; seat <= seatsPerRow; seat++) {
-        const seatId = `${row}-${seat}`;
-        const isBooked = bookedSeats.includes(seatId);
-        const isSelected = selectedSeats.includes(seatId);
-        
-        let seatClass = 'seat';
-        if (isBooked) seatClass += ' booked';
-        if (isSelected) seatClass += ' selected';
+    return Array.from({ length: rows }).map((_, rowIndex) => {
+      const rowNumber = rowIndex + 1;
+      return (
+        <div key={`row-${rowNumber}`} className="seat-row">
+          <div className="row-number">{rowNumber}</div>
+          {Array.from({ length: seatsPerRow }).map((_, seatIndex) => {
+            const seatNumber = seatIndex + 1;
+            const seatId = `${rowNumber}-${seatNumber}`;
+            const isBooked = bookedSeats.includes(seatId);
+            const isSelected = selectedSeats.includes(seatId);
 
-        rowSeats.push(
-          <div 
-            key={seatId}
-            className={seatClass}
-            onClick={() => !isBooked && handleSeatClick(seatId)}
-          >
-            {seat}
-          </div>
-        );
-      }
-      seats.push(
-        <div key={`row-${row}`} className="seat-row">
-          <div className="row-number">{row}</div>
-          {rowSeats}
+            return (
+              <button
+                key={seatId}
+                className={`seat ${isBooked ? 'booked' : ''} ${isSelected ? 'selected' : ''}`}
+                onClick={() => handleSeatClick(seatId)}
+                disabled={isBooked}
+              >
+                {seatNumber}
+              </button>
+            );
+          })}
         </div>
       );
-    }
-    return seats;
+    });
   };
 
   return (
-    <div className="cinema-hall">
-      <div className="screen">Екран</div>
-      <div className="seats-container">
+    <div className="cinema-hall-container">
+      <div className="screen">ЕКРАН</div>
+      <div className="seats-grid">
         {renderSeats()}
       </div>
-      <div className="selected-seats-info">
-        <h3>Вибрані місця: {selectedSeats.join(', ')}</h3>
+      <div className="legend">
+        <div className="legend-item">
+          <div className="seat-sample available"></div>
+          <span>Вільні</span>
+        </div>
+        <div className="legend-item">
+          <div className="seat-sample selected"></div>
+          <span>Вибрані</span>
+        </div>
+        <div className="legend-item">
+          <div className="seat-sample booked"></div>
+          <span>Заброньовані</span>
+        </div>
       </div>
     </div>
   );

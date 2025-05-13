@@ -1,17 +1,20 @@
-const BOOKINGS_KEY = 'cinema_bookings';
+const BOOKINGS_KEY = 'cinema_bookings_v2';
 
 export const saveBooking = (bookingData) => {
   const bookings = getBookings();
-  bookings.push(bookingData);
-  localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+  const newBooking = {
+    id: Date.now().toString(),
+    ...bookingData,
+    bookedAt: new Date().toISOString()
+  };
+  localStorage.setItem(BOOKINGS_KEY, JSON.stringify([...bookings, newBooking]));
+  return Promise.resolve(newBooking); // Повертаємо Promise для асинхронності
 };
 
 export const getBookings = () => {
-  const bookingsJson = localStorage.getItem(BOOKINGS_KEY);
-  return bookingsJson ? JSON.parse(bookingsJson) : [];
+  return JSON.parse(localStorage.getItem(BOOKINGS_KEY)) || [];
 };
 
 export const getBookingsForMovie = (movieId) => {
-  const bookings = getBookings();
-  return bookings.filter(booking => booking.movieId === movieId);
+  return getBookings().filter(booking => booking.movieId === movieId);
 };
