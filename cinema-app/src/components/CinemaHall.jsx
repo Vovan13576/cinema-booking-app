@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getBookingsForMovie } from '../services/BookingService';
-import './CinemaHall.css'; // Додамо окремий файл стилів
+import './CinemaHall.css';
 
 const CinemaHall = ({ movieId, onSeatSelect, selectedSeats = [] }) => {
   const [bookedSeats, setBookedSeats] = useState([]);
@@ -21,39 +21,37 @@ const CinemaHall = ({ movieId, onSeatSelect, selectedSeats = [] }) => {
     }
   };
 
-  const renderSeats = () => {
-    return Array.from({ length: rows }).map((_, rowIndex) => {
-      const rowNumber = rowIndex + 1;
-      return (
-        <div key={`row-${rowNumber}`} className="seat-row">
-          <div className="row-number">{rowNumber}</div>
-          {Array.from({ length: seatsPerRow }).map((_, seatIndex) => {
-            const seatNumber = seatIndex + 1;
-            const seatId = `${rowNumber}-${seatNumber}`;
-            const isBooked = bookedSeats.includes(seatId);
-            const isSelected = selectedSeats.includes(seatId);
-
-            return (
-              <button
-                key={seatId}
-                className={`seat ${isBooked ? 'booked' : ''} ${isSelected ? 'selected' : ''}`}
-                onClick={() => handleSeatClick(seatId)}
-                disabled={isBooked}
-              >
-                {seatNumber}
-              </button>
-            );
-          })}
-        </div>
-      );
-    });
-  };
-
   return (
     <div className="cinema-hall-container">
       <div className="screen">ЕКРАН</div>
       <div className="seats-grid">
-        {renderSeats()}
+        {Array.from({ length: rows }).map((_, rowIndex) => {
+          const rowNumber = rowIndex + 1;
+          return (
+            <div key={`row-${rowNumber}`} className="seat-row">
+              <div className="row-number">{rowNumber}</div>
+              <div className="seats-in-row">
+                {Array.from({ length: seatsPerRow }).map((_, seatIndex) => {
+                  const seatNumber = seatIndex + 1;
+                  const seatId = `r${rowNumber}s${seatNumber}`;
+                  const isBooked = bookedSeats.includes(seatId);
+                  const isSelected = selectedSeats.includes(seatId);
+
+                  return (
+                    <button
+                      key={seatId}
+                      className={`seat ${isBooked ? 'booked' : ''} ${isSelected ? 'selected' : ''}`}
+                      onClick={() => handleSeatClick(seatId)}
+                      disabled={isBooked}
+                    >
+                      {seatNumber}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
       <div className="legend">
         <div className="legend-item">
