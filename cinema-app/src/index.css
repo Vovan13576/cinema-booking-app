@@ -240,3 +240,7 @@ a {
   background: var(--primary);
   border-radius: 2px;
 }
+
+h1 {
+  text-align: center;
+}
